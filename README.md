@@ -4,7 +4,7 @@ A tiny-armies real-time strategy game where you gather resources, build a base, 
 
 🎮 **Play it now in your browser:** https://hphremote.itch.io/age-of-tinies
 
-![Age of Tinies](cap_cover.png)
+![Age of Tinies](cover.png)
 
 ---
 
