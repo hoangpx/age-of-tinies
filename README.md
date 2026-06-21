@@ -37,7 +37,7 @@ It is developed iteratively, play-test by play-test, with a focus on getting the
 |-------|--------|---------|
 | **Tiny Swords** art pack (sprites, tiles, UI) | [Pixel Frog](https://pixelfrog-assets.itch.io/tiny-swords) | Free to use (see pack page) |
 | **MedievalSharp** font | [Google Fonts](https://fonts.google.com/specimen/MedievalSharp) | SIL Open Font License (OFL) |
-| Sound effects & music | [Epidemic Sound](https://www.epidemicsound.com) | Licensed via Epidemic Sound subscription |
+| Sound effects & music | Licensed audio — **not included in this repository** | Provide your own |
 | Game engine | [Godot Engine](https://godotengine.org/) | MIT |
 
 > "Tiny Swords" is the name of the **art pack** by Pixel Frog, not the name of this game. Please support the original artist.
@@ -92,9 +92,9 @@ If the project gains enough community support, the plan is to:
 
 ## 📜 License
 
-The **game code** in this repository is open for contribution under the repository's license. **Third-party assets** (Tiny Swords art, MedievalSharp font, Epidemic Sound audio) remain under their respective licenses listed in Credits — please review those before redistributing.
+The **game code** in this repository is open for contribution under the repository's license. **Third-party assets** (Tiny Swords art, MedievalSharp font) remain under their respective licenses listed in Credits — please review those before redistributing.
 
-> ⚠️ **Audio:** the sound effects and music are licensed from **Epidemic Sound** under the maintainer's subscription. They are included so the game runs out of the box, but they are **not** covered by this project's open license and **may not be redistributed, reused, or extracted** for other projects. If you fork this repo for your own game, replace the audio with assets you are licensed to use.
+> ⚠️ **Audio is not bundled in this repository.** The sound effects and music used in the released build are separately licensed and are not part of this open-source project. To run the game with sound, supply your own audio files in `audio/` (`bg.wav` and the SFX under `audio/sfx/`).
 
 ---
 

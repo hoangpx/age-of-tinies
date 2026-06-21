@@ -17,3 +17,6 @@ Thumbs.db
 
 # Local tooling config
 .claude/
+
+# Licensed audio — not distributed in this repo
+/audio/
