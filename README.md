@@ -37,7 +37,8 @@ It is developed iteratively, play-test by play-test, with a focus on getting the
 |-------|--------|---------|
 | **Tiny Swords** art pack (sprites, tiles, UI) | [Pixel Frog](https://pixelfrog-assets.itch.io/tiny-swords) | Free to use (see pack page) |
 | **MedievalSharp** font | [Google Fonts](https://fonts.google.com/specimen/MedievalSharp) | SIL Open Font License (OFL) |
-| Sound effects & music | Licensed audio — **not included in this repository** | Provide your own |
+| Background music | [Epidemic Sound](https://www.epidemicsound.com) | Subscription license — *not redistributed in this repo* |
+| Sound effects | [ElevenLabs](https://elevenlabs.io) | AI-generated |
 | Game engine | [Godot Engine](https://godotengine.org/) | MIT |
 
 > "Tiny Swords" is the name of the **art pack** by Pixel Frog, not the name of this game. Please support the original artist.
@@ -94,7 +95,7 @@ If the project gains enough community support, the plan is to:
 
 The **game code** in this repository is open for contribution under the repository's license. **Third-party assets** (Tiny Swords art, MedievalSharp font) remain under their respective licenses listed in Credits — please review those before redistributing.
 
-> ⚠️ **Audio is not bundled in this repository.** The sound effects and music used in the released build are separately licensed and are not part of this open-source project. To run the game with sound, supply your own audio files in `audio/` (`bg.wav` and the SFX under `audio/sfx/`).
+> ⚠️ **Audio is not bundled in this repository.** The background music is licensed from **Epidemic Sound** and may not be redistributed, so it is kept out of the repo; the sound effects were generated with **ElevenLabs**. To run the game with sound, supply your own audio files in `audio/` (`bg.wav` and the SFX under `audio/sfx/`).
 
 ---
 
