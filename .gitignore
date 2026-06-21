@@ -1,0 +1,19 @@
+# Godot 4+ import cache
+.godot/
+
+# Export output (web/desktop builds — large, regenerable)
+/build/
+
+# Android build template (regenerable via "Install Android Build Template")
+/android/build/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Local capture/debug screenshots produced by _CAPTURE flag
+/shot.png
+
+# Local tooling config
+.claude/
