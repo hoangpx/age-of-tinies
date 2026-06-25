@@ -22,7 +22,7 @@
 
 const Library := preload("res://addons/admob/internal/exporters/android/library.gd")
 
-const APPLICATION_ID := "ca-app-pub-3940256099942544~3347511713" # PLACEHOLDER = Google test App ID. TODO: thay = Age of Tinies App ID thật (pub-9259739799903045) trước khi build production.
+const APPLICATION_ID := "ca-app-pub-9259739799903045~9077418393" # Age of Tinies Android App ID (HPH Remote pub-9259739799903045)
 
 var libraries: Array[Library] = [
 	# Main Plugin

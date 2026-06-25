@@ -54,29 +54,29 @@ const TEST_INTERSTITIAL_IOS: String = \
 # export config, not in code; the unit IDs below are what `show_rewarded`
 # / `show_interstitial` call. iOS units are not provisioned on this
 # account yet (no iOS build), so they retain the old placeholders.
-# TODO(AdMob): tạo app + units MỚI cho Age of Tinies (com.ageoftinies.app) dưới
-# publisher pub-9259739799903045, điền ID thật vào đây + đặt use_test_ids=false.
-# App ID còn phải vào addons/admob/android/config.gd APPLICATION_ID.
-# Hiện để PLACEHOLDER = ID test của Google nên build chạy được mà chưa cần app thật.
+# Age of Tinies — units thật tạo 2026-06-21, publisher pub-9259739799903045,
+# package com.ageoftinies.app. App ID cũng nằm ở addons/admob/android/config.gd.
+# Chỉ dùng INTERSTITIAL trong game; rewarded giữ ID test (chưa dùng). iOS chưa làm.
 const LIVE_APP_ID_ANDROID: String = \
-	"ca-app-pub-3940256099942544~3347511713"   # PLACEHOLDER (test)
+	"ca-app-pub-9259739799903045~9077418393"
 const LIVE_APP_ID_IOS: String = \
-	"ca-app-pub-3940256099942544~1458002511"   # PLACEHOLDER (test)
+	"ca-app-pub-3940256099942544~1458002511"   # PLACEHOLDER (test) — iOS chưa provision
 const LIVE_REWARDED_ANDROID: String = \
-	"ca-app-pub-3940256099942544/5224354917"   # PLACEHOLDER (test)
+	"ca-app-pub-3940256099942544/5224354917"   # test (game chưa dùng rewarded)
 const LIVE_REWARDED_IOS: String = \
-	"ca-app-pub-3940256099942544/1712485313"   # PLACEHOLDER (test)
+	"ca-app-pub-3940256099942544/1712485313"   # test
 const LIVE_INTERSTITIAL_ANDROID: String = \
-	"ca-app-pub-3940256099942544/1033173712"   # PLACEHOLDER (test) → thay = AoT interstitial
+	"ca-app-pub-9259739799903045/5403530179"   # match_end_interstitial
 const LIVE_INTERSTITIAL_IOS: String = \
-	"ca-app-pub-3940256099942544/4411468910"   # PLACEHOLDER (test)
+	"ca-app-pub-3940256099942544/4411468910"   # PLACEHOLDER (test) — iOS chưa provision
 
 ## When true, `_unit_id_*` returns the official AdMob test IDs instead
 ## of the LIVE_* constants. Keep this true during dev + QA so tapping
 ## your own ads can't get the publisher account flagged. Flip to false
 ## right before submitting to the stores.
-## AoT: GIỮ true cho tới khi tạo xong units thật + điền LIVE_* ở trên.
-var use_test_ids: bool = true
+## AoT: units thật đã điền → false (ads thật). ĐỪNG tự bấm ads trên máy mình
+## trừ khi đã đăng ký device đó làm test device trong AdMob (tránh bị flag account).
+var use_test_ids: bool = false
 
 ## When true, all `show_*` calls return success immediately without
 ## hitting any SDK. Used on desktop dev + while the AdMob plugin isn't
