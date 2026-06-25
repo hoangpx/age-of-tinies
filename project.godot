@@ -16,6 +16,17 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.16, 0.44, 0.62, 1)
 boot_splash/image="res://splash.png"
 config/icon="res://icon_512.png"
+config/version="1.0"
+
+[autoload]
+
+GameState="*res://scripts/GameState.gd"
+AdsManager="*res://scripts/AdsManager.gd"
+BillingManager="*res://scripts/BillingManager.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/admob/plugin.cfg")
 
 [debug]
 

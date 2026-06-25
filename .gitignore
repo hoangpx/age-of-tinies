@@ -20,3 +20,6 @@ Thumbs.db
 
 # Licensed audio — not distributed in this repo
 /audio/
+
+# Auto-downloaded AdMob iOS plugin binaries (regenerated on import)
+/ios/plugins/

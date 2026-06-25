@@ -31,7 +31,7 @@ var _unit_label: Label           # HUD: số unit / cap
 var _ai_res := {"Wood": 10, "Gold": 0, "Meat": 10}   # kho resource của AI
 var _ai_t := 0.0                 # nhịp suy nghĩ AI
 var _ai_train_t := 3.0           # đếm lùi tới lượt huấn luyện lính kế tiếp
-var _ai_income_t := 5.0          # đếm lùi tới đợt +1 gỗ +1 thịt (mỗi 5s)
+var _ai_income_t := 10.0         # đếm lùi tới đợt +1 gỗ +1 thịt (mỗi 10s)
 var _ai_tgt := {}                # instance_id lính đỏ -> mục tiêu hiện tại (tránh ra lệnh lặp gây giật)
 var _ai_pawn_tool := {}          # instance_id nông dân đỏ -> "nghề" cố định (Axe/Pickaxe/Knife) để chia đều 3 loại
 var _ai_chase_t := {}            # id lính đỏ -> mốc giờ (ms) bắt đầu đuổi 1 dân/lính
@@ -51,6 +51,7 @@ var _sfx_vol := 1.0     # âm lượng sfx  (0..1)
 var _settings_panel: Control
 var _modal_dim: ColorRect        # nền mờ phủ toàn màn hình khi mở Settings (che mọi banner)
 var _info_btn: Button            # nút info (góc dưới-phải) — hiện khi mở Settings
+var _remove_ads_btn: Button      # nút mua Remove Ads trong Settings
 var _credits_panel: Control      # tờ giấy credit asset
 # Công trình xây được (TRỪ Castle). Giá = GỖ. sheet=tên file (house chọn random sau).
 const BUILD_INFO := {
@@ -640,7 +641,7 @@ func _command_move_group(w: Vector2) -> void:
 		units[i].command_move(w + off)
 
 # Nút điều khiển trên màn hình (CanvasLayer → cố định, ko bị camera zoom).
-const GAME_VERSION := "v0.1 build 7"
+const GAME_VERSION := "v0.1 build 8"
 
 func _build_ui() -> void:
 	var cl := CanvasLayer.new()
@@ -1044,6 +1045,21 @@ func _build_settings(cl: CanvasLayer) -> void:
 	# 2 thanh âm lượng (gấp đôi)
 	_settings_panel.add_child(_mk_vol_row("UI Elements/Icons/Icon_12.png", 380.0, 128.0, linear_to_db(maxf(_music_vol, 0.0001)), _set_music_vol))
 	_settings_panel.add_child(_mk_vol_row("UI Elements/Icons/volume.png", 540.0, 192.0, linear_to_db(maxf(_sfx_vol, 0.0001)), _set_sfx_vol))
+	# Nút REMOVE ADS (IAP) + RESTORE
+	var rm := Button.new(); rm.add_theme_font_size_override("font_size", 56)
+	rm.position = Vector2(w * 0.5 - 320, 700); rm.custom_minimum_size = Vector2(640, 150); rm.size = Vector2(640, 150)
+	rm.focus_mode = Control.FOCUS_NONE; _style_btn(rm)
+	_remove_ads_btn = rm
+	_refresh_remove_ads_btn()
+	rm.pressed.connect(_on_remove_ads_pressed)
+	_settings_panel.add_child(rm)
+	var rs := Button.new(); rs.text = "Restore"; rs.add_theme_font_size_override("font_size", 40)
+	rs.position = Vector2(w * 0.5 - 180, 858); rs.custom_minimum_size = Vector2(360, 78); rs.size = Vector2(360, 78)
+	rs.focus_mode = Control.FOCUS_NONE; _style_btn(rs)
+	rs.pressed.connect(func() -> void:
+		await BillingManager.restore_purchases()
+		_refresh_remove_ads_btn())
+	_settings_panel.add_child(rs)
 	# Nút INFO (Icon_11) ở góc DƯỚI-PHẢI bên trong panel Settings
 	_info_btn = Button.new(); _info_btn.flat = true; _info_btn.focus_mode = Control.FOCUS_NONE
 	_info_btn.icon = load(ART + "UI Elements/Icons/Icon_11.png"); _info_btn.expand_icon = true
@@ -1054,6 +1070,23 @@ func _build_settings(cl: CanvasLayer) -> void:
 	cl.add_child(_settings_panel)
 	_build_credits(cl)
 	_build_confirm(cl)
+
+# Cập nhật chữ trên nút Remove Ads theo trạng thái sở hữu IAP.
+func _refresh_remove_ads_btn() -> void:
+	if _remove_ads_btn == null: return
+	if BillingManager.is_owned(BillingManager.SKU_REMOVE_ADS):
+		_remove_ads_btn.text = "Ads Removed ✓"
+		_remove_ads_btn.disabled = true
+	else:
+		_remove_ads_btn.text = "Remove Ads  %s" % BillingManager.price_of(BillingManager.SKU_REMOVE_ADS)
+		_remove_ads_btn.disabled = false
+
+func _on_remove_ads_pressed() -> void:
+	if _remove_ads_btn != null: _remove_ads_btn.disabled = true
+	var ok: bool = await BillingManager.purchase(BillingManager.SKU_REMOVE_ADS)
+	if not ok and _remove_ads_btn != null: _remove_ads_btn.disabled = false
+	_refresh_remove_ads_btn()
+	if ok: _show_msg("Ads removed. Thank you!")
 
 # Tờ giấy CREDIT tác giả asset Tiny Swords.
 func _build_credits(cl: CanvasLayer) -> void:
@@ -1448,6 +1481,13 @@ func _end_match(player_won: bool) -> void:
 	play_sfx("victory" if player_won else "defeat")
 	# DỪNG game world (lính/AI/anim) nhưng KO pause cả cây → vẫn zoom/pan camera được
 	if _world != null and is_instance_valid(_world): _world.process_mode = Node.PROCESS_MODE_DISABLED
+	_show_match_end_ad()   # quảng cáo interstitial cuối trận (stub trên desktop/web; tắt nếu mua Remove Ads)
+
+# Hiện interstitial sau ~1.5s để người chơi kịp thấy VICTORY/GAME OVER. Chạy như coroutine rời.
+func _show_match_end_ad() -> void:
+	await get_tree().create_timer(1.5).timeout
+	if is_instance_valid(self):
+		await AdsManager.show_interstitial("match_end")
 
 # ===== Mục tiêu AI (snowball mạnh) =====
 const AI_PAWN_TARGET := 20                                  # nuôi tới 20 nông dân
@@ -1464,10 +1504,10 @@ func _ai_tick(delta: float) -> void:
 	_ai_t = 0.5                                   # suy nghĩ mỗi 0.5s
 	var rc = _castle_of(1)
 	if rc == null: return
-	# thu nhập nhẹ: +1 gỗ +1 thịt mỗi 5s (ngoài ra vẫn phải tự đào)
+	# thu nhập nhẹ: +1 gỗ +1 thịt mỗi 10s (ngoài ra vẫn phải tự đào)
 	_ai_income_t -= 0.5
 	if _ai_income_t <= 0.0:
-		_ai_income_t = 5.0
+		_ai_income_t = 10.0
 		_ai_res["Wood"] = _ai_res.get("Wood", 0) + 1
 		_ai_res["Meat"] = _ai_res.get("Meat", 0) + 1
 	# phân loại lính đỏ + nhà đỏ ĐÃ XÂY XONG (theo loại)
@@ -1824,7 +1864,7 @@ func build_map() -> void:
 	_selected = []   # lính cũ đã bị free
 	_last_sel_f = null
 	_castle_placed = false; _unit_cap = 10   # castle (5) + 1 nhà dân (5)
-	_match_over = false; _match_t = 0.0; _ai_tgt = {}; _ai_pawn_tool = {}; _ai_chase_t = {}; _ai_nochase_until = {}; _ai_t = 0.0; _ai_train_t = 3.0; _ai_income_t = 5.0
+	_match_over = false; _match_t = 0.0; _ai_tgt = {}; _ai_pawn_tool = {}; _ai_chase_t = {}; _ai_nochase_until = {}; _ai_t = 0.0; _ai_train_t = 3.0; _ai_income_t = 10.0
 	_ai_res = {"Wood": 10, "Gold": 0, "Meat": 10}
 	if _lose_label != null: _lose_label.add_theme_color_override("font_color", Color.WHITE)
 	_build_mode = ""
