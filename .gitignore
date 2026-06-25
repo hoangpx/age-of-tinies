@@ -23,3 +23,6 @@ Thumbs.db
 
 # Auto-downloaded AdMob iOS plugin binaries (regenerated on import)
 /ios/plugins/
+
+# Promo/store screenshots (local assets)
+/promo_*.png

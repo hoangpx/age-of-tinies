@@ -1937,6 +1937,96 @@ func build_map() -> void:
 		get_viewport().get_texture().get_image().save_png("res://shot.png")
 		get_tree().quit()
 
+	if "--promo" in OS.get_cmdline_user_args():
+		_promo_scene()
+
+# Dàn 1 trận đại chiến đủ loại lính + nông dân khai thác rồi tự chụp nhiều ảnh cho store.
+func _promo_scene() -> void:
+	if _fps_label != null: _fps_label.visible = false
+	# tắt sương mù cho ảnh sáng đẹp
+	_fog_dim_on = false; _fog_black_on = false; _on_fog_toggle()
+	await get_tree().create_timer(0.4).timeout
+	var bc = _castle_of(0)
+	if bc == null: return
+	var ox: int = bc.cell.x + 2      # tâm trận: vùng phẳng nam castle xanh (chỗ nông dân dàn hàng)
+	var oy: int = bc.cell.y + 6
+	# MOB sát nhau: 2 cột XANH (ox-2, ox-1) vs 2 cột ĐỎ (ox+1, ox+2), chỉ cách 1-2 ô → đánh ngay
+	var bt := ["Warrior", "Lancer", "Archer", "Monk"]
+	for row in range(4):
+		_make_fighter(_world, 0, "Blue", bt[row], nearest_free(ox - 2, oy - 2 + row))
+		_make_fighter(_world, 0, "Blue", bt[(row + 2) % 4], nearest_free(ox - 1, oy - 2 + row))
+		_make_fighter(_world, 1, "Red", bt[row], nearest_free(ox + 2, oy - 2 + row))
+		_make_fighter(_world, 1, "Red", bt[(row + 2) % 4], nearest_free(ox + 1, oy - 2 + row))
+	# nông dân XANH đốn cây: spawn 3 pawn cạnh 1 cây gần đó rồi command_gather
+	var tree = null
+	for r in get_tree().get_nodes_in_group("resource"):
+		if is_instance_valid(r) and r.get("res_kind") == "wood": tree = r; break
+	var gpawns: Array = []
+	if tree != null:
+		var tc: Vector2i = tree.cell
+		for k in range(3):
+			var gp := _make_fighter(_world, 0, "Blue", "Pawn", nearest_free(tc.x - 1 + k, tc.y + 2))
+			gp.command_gather(tree); gpawns.append(gp)
+	# camera CẬN CẢNH đại chiến
+	if _cam != null:
+		_cam.position = Vector2((ox + 0.5) * PPU, (oy + 0.5) * PPU)
+		_cam.zoom = Vector2(1.9, 1.9)
+	await get_tree().create_timer(3.2).timeout
+	get_viewport().get_texture().get_image().save_png("res://promo_1.png")   # đại chiến mob
+	await get_tree().create_timer(1.3).timeout
+	get_viewport().get_texture().get_image().save_png("res://promo_2.png")   # đại chiến (khoảnh khắc khác)
+	# cảnh nông dân ĐỐN CÂY (camera vào cây)
+	if tree != null and is_instance_valid(tree) and _cam != null:
+		_cam.position = Vector2((tree.cell.x + 0.5) * PPU, (tree.cell.y + 0.5) * PPU)
+		_cam.zoom = Vector2(2.1, 2.1)
+	await get_tree().create_timer(1.4).timeout
+	get_viewport().get_texture().get_image().save_png("res://promo_3.png")   # khai thác
+	# toàn cảnh trận đánh + đảo
+	if _cam != null:
+		_cam.position = Vector2((ox + 0.5) * PPU, (oy + 0.5) * PPU)
+		_cam.zoom = Vector2(1.05, 1.05)
+	await get_tree().create_timer(1.0).timeout
+	get_viewport().get_texture().get_image().save_png("res://promo_4.png")   # toàn cảnh
+
+	# ẢNH 5: tất cả các loại nhà xây loanh quanh nhau (đông castle xanh, đất phẳng)
+	var bx: int = bc.cell.x + 9
+	var by: int = bc.cell.y + 3
+	var blds := [
+		["house", bx, by], ["barracks", bx + 5, by], ["archer", bx + 10, by],
+		["monk", bx + 1, by + 7], ["tower", bx + 7, by + 7],
+	]
+	var bcells: Array = []
+	for spec in blds:
+		var w: int = int(BUILD_INFO[spec[0]]["w"]); var h: int = int(BUILD_INFO[spec[0]]["h"])
+		var bcell: Vector2i = _fit_cell(spec[1], spec[2], w, h)
+		var nb := make_building(spec[0], bcell, 0, true)   # team 0, ĐÃ xây xong
+		_world.add_child(nb); _setup_footprint(nb, bcell, w, h)
+		bcells.append(bcell)
+	if _cam != null:
+		_cam.position = Vector2((bx + 5) * PPU, (by + 4) * PPU)
+		_cam.zoom = Vector2(1.15, 1.15)
+	await get_tree().create_timer(0.8).timeout
+	get_viewport().get_texture().get_image().save_png("res://promo_5.png")   # cụm nhà đủ loại
+
+	# ẢNH 6: VICTORY khi castle ĐỎ nổ
+	var rc = _castle_of(1)
+	if rc != null and _cam != null:
+		_cam.position = rc.global_position + Vector2(0, -40)
+		_cam.zoom = Vector2(1.5, 1.5)
+	var vp := get_viewport().get_visible_rect().size
+	if rc != null and is_instance_valid(rc): rc._destroy()   # nổ + sfx (KO disable world → nổ animate)
+	if _lose_label != null:
+		_lose_label.text = "VICTORY!"
+		_lose_label.add_theme_font_size_override("font_size", 180)   # to, nổi bật cho ảnh hero
+		_lose_label.add_theme_color_override("font_color", Color(0.35, 1.0, 0.45))
+		_lose_label.add_theme_constant_override("outline_size", 18)
+		_lose_label.add_theme_color_override("font_outline_color", Color(0, 0.18, 0.05))
+		_lose_label.position = Vector2(vp.x * 0.5 - 470, vp.y * 0.5 - 120)
+		_lose_label.visible = true
+	await get_tree().create_timer(0.15).timeout   # quả cầu lửa đang to nhất
+	get_viewport().get_texture().get_image().save_png("res://promo_6.png")   # VICTORY + nổ
+	get_tree().quit()
+
 
 # ---------- đảo ----------
 func generate_land(bx0: int, bx1: int, by0: int, by1: int) -> void:
